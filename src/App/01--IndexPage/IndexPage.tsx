@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useOutletContext } from "react-router-dom";
 
+
 function IndexPage() {
 
     const [veggiesToShow, setVeggiesToShow] = useState<string[]>(["Cabbage", "Squash", "Peppers, Bell Type", "Broccoli"]);
@@ -14,6 +15,8 @@ function IndexPage() {
         low_price: string;
         high_price: string;
         report_date: string;
+        demand_tone_comments: string;
+        supply_tone_comments: string;
     };
 
     type outletContextType = {
@@ -36,6 +39,33 @@ function IndexPage() {
                 return "Brocoli";
             default:
                 return commodity;
+        }
+    }
+
+    const commentsTranslation = (comments: string) => {
+        switch (comments) {
+            case "GOOD":
+                return "Bonne";
+            case "FAIRLY GOOD":
+                return "Plutôt Bonne";
+            case "MODERATE":
+                return "Modérée";
+            case "FAIRLY LIGHT":
+                return "Plutôt Faible";
+            case "LIGHT":
+                return "Faible";
+            case "VERY LIGHT":
+                return "Très Faible";
+            case "Red fairly good, others moderate":
+                return "Rouge plutôt bonne, autres modérées";
+            case "FAIRLY HEAVY":
+                return "Plutôt Forte";
+            case "HEAVY":
+                return "Forte";
+            case "good at slightly lower prices":
+                return "bonne pour prix un peu plus faible";
+            default:
+                return comments;
         }
     }
 
@@ -74,26 +104,56 @@ function IndexPage() {
                         </div>
 
                     </div>
-                    <ul className="flex flex-col lg:grid lg:grid-cols-2  gap-[0.25rem] w-[min(100%,_40rem)] lg:w-full">
+                    <ul className="flex flex-col lg:grid lg:grid-cols-2 gap-[0.25rem] w-[min(100%,_40rem)] lg:w-full">
                         {vegReports.flatMap((report, idx) =>
                             report.results
-                                .filter((result) =>
-                                    veggiesToShow.some((kw: string) =>
-                                        result.commodity.includes(kw)
-                                    )
+                                .filter(
+                                    (result) =>
+                                        veggiesToShow.some((kw: string) =>
+                                            result.commodity.includes(kw)
+                                        ) &&
+                                        !(result.low_price === null && result.high_price === null) // 👈 skip if both are null
                                 )
                                 .map((result, rIdx) => (
-                                    <li className=" relative flex flex-col gap-[0.5rem] bg-white p-[0.5rem] pb-[1.2rem] lg:py-[2rem] rounded-[0.75rem] border-4 border-green-400 border-solid" key={`${idx}-${rIdx}`}>
-                                        <h3 className="text-center lg:text-[1.1rem]"><strong>{result.market_location_city}</strong>:</h3>{" "}
-                                        <div className="lg:flex items-center gap-[2rem]">
-                                            <p className="text-[1.3rem] lg:text-[1.5rem] font-bold" >{commodityDisplayName(result.commodity)}</p>
-                                            <p>({result.item_size}, {result.pkg})</p>
+                                    <li
+                                        className="relative flex flex-col gap-[0.5rem] bg-white p-[0.5rem] pb-[1.2rem] lg:py-[2rem] rounded-[0.75rem] border-4 border-green-400 border-solid"
+                                        key={`${idx}-${rIdx}`}
+                                    >
+                                        <h3 className="text-center lg:text-[1.1rem]">
+                                            <strong>{result.market_location_city}</strong>:
+                                        </h3>
+                                        <div className="flex justify-between">
+                                            <div className="flex flex-col gap-[0.5rem]">
+                                                <div className=" items-center gap-[2rem]">
+                                                    <p className="text-[1.3rem] lg:text-[1.5rem] font-bold">
+                                                        {commodityDisplayName(result.commodity)}
+                                                    </p>
+                                                    <p>({result.item_size}, {result.pkg})</p>
+                                                </div>
+
+                                                <div className="flex flex-col">
+                                                    <p>
+                                                        <span className="text-[1.2rem] font-bold">Bas: </span> $
+                                                        {Number(result.low_price).toFixed(2)}usd, &nbsp;
+                                                    </p>
+                                                    <p>
+                                                        <span className="text-[1.2rem] font-bold">Haut: </span> $
+                                                        {Number(result.high_price).toFixed(2)}usd
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <div className="flex flex-col text-right max-w-[270px]">
+                                                <p className="text-[0.8rem] font-bold">
+                                                    Disponibilité(offre): {result.supply_tone_comments ? commentsTranslation(result.supply_tone_comments) : "Pas d'info"}
+                                                </p>
+                                                <p className="text-[1rem] font-bold">
+                                                    Demande : {commentsTranslation(result.demand_tone_comments) || "Pas d'info"}
+                                                </p>
+                                            </div>
                                         </div>
-                                        <div className="flex">
-                                            <p> <span className="text-[1.2rem] font-bold">Bas: </span> ${Number(result.low_price).toFixed(2)}usd, &nbsp;</p>
-                                            <p> <span className="text-[1.2rem] font-bold">Haut: </span>  ${Number(result.high_price).toFixed(2)}usd</p>
-                                        </div>
-                                        <p className="text-[0.8rem] absolute bottom-0 right-1" >{result.report_date}</p>
+                                        <p className="text-[0.8rem] absolute bottom-0 right-1">
+                                            {result.report_date}
+                                        </p>
                                     </li>
                                 ))
                         )}
