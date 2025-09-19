@@ -64,6 +64,8 @@ function IndexPage() {
                 return "Forte";
             case "good at slightly lower prices":
                 return "bonne pour prix un peu plus faible";
+            case "in few hands.":
+                return "très limitée";
             default:
                 return comments;
         }
