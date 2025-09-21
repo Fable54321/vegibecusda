@@ -17,6 +17,7 @@ function IndexPage() {
         report_date: string;
         demand_tone_comments: string;
         supply_tone_comments: string;
+        organic: string;
     };
 
     type outletContextType = {
@@ -144,6 +145,9 @@ function IndexPage() {
                 <p>Les rapports pour la date sélectionnée ne sont pas disponibles</p>
             ) : (
                 <>
+                    {/* show unshow button */}
+                    <button onClick={() => setVeggiesToShow(veggiesToShow.length === 6 ? [] : ["Cabbage", "Squash", "Peppers, Bell Type", "Broccoli", "Cauliflower", "Brussel"])} className=" active:scale-95 active:translate-y-1 shadow-lg  border-green-700 border-3 outline-2 outline-green-400 text-[0.8rem]  p-[0.5rem] rounded-[0.5rem] cursor-pointer">{veggiesToShow.length === 6 ? "Tout déselectionner" : "Tout sélectionner"}</button>
+                    {/* ******** */}
                     <div className="grid grid-cols-2 gap-[0.5rem] w-[min(85%,_40rem)] lg:text-[1.2rem] lg:gap-x-[10rem] ">
                         <VeggieCheckbox id="cabbage" label="Choux" value="Cabbage" />
                         <VeggieCheckbox id="squash" label="Courgettes" value="Squash" />
@@ -152,9 +156,8 @@ function IndexPage() {
                         <VeggieCheckbox id="brussels" label="Choux de Bruxelles" value="Brussel" />
                         <VeggieCheckbox id="cauliflower" label="Chou-fleur" value="Cauliflower" />
                     </div>
-                    {/* show unshow button */}
-                    <button onClick={() => setVeggiesToShow(veggiesToShow.length === 6 ? [] : ["Cabbage", "Squash", "Peppers, Bell Type", "Broccoli", "Cauliflower", "Brussel"])} className="active:bg-green-700 active:scale-95 active:translate-y-1 shadow-lg active:text-white border-green-700 border-3 outline-2 outline-green-400  p-[0.5rem] rounded-[0.5rem] cursor-pointer">{veggiesToShow.length === 6 ? "Tout déselectionner" : "Tout sélectionner"}</button>
-                    {/* ******** */}
+                    <p className="w-[80%] text-[0.8rem] text-center mt-[-0.5rem]">Cliquer ou Appuyer longuement sur une case pour ne sélectionner que celle-ci</p>
+
                     <ul className="flex flex-col lg:grid lg:grid-cols-2 gap-[0.25rem] w-[min(100%,_40rem)] lg:w-full">
                         {vegReports.flatMap((report, idx) =>
                             report.results
@@ -163,7 +166,7 @@ function IndexPage() {
                                         veggiesToShow.some((kw: string) =>
                                             result.commodity.includes(kw)
                                         ) &&
-                                        !(result.low_price === null && result.high_price === null) // 👈 skip if both are null
+                                        !(result.low_price === null && result.high_price === null)
                                         &&
                                         (result.commodity !== "Chinese Cabbage")
                                 )
@@ -202,8 +205,10 @@ function IndexPage() {
                                                 <p className="text-[1rem] font-bold">
                                                     Demande : {commentsTranslation(result.demand_tone_comments) || "Pas d'info"}
                                                 </p>
+
                                             </div>
                                         </div>
+                                        <p className="text-[1rem] absolute bottom-[1.1rem] right-1">Bio : {result.organic === "N" ? "Non" : <span className="bg-[#FFF176] font-bold text-[1.1rem] px-[0.1rem]">OUI</span>}</p>
                                         <p className="text-[0.8rem] absolute bottom-0 right-1">
                                             {result.report_date}
                                         </p>

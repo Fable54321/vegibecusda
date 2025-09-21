@@ -12,7 +12,18 @@ function App() {
 
   const [date, setDate] = useState(() => {
     const today = new Date();
-    today.setDate(today.getDate() - 1);
+    today.setDate(today.getDate() - 1); // start at yesterday
+
+    const day = today.getDay(); // 0 = Sunday, 6 = Saturday
+
+    if (day === 6) {
+      // Saturday → move back 1 more day (to Friday)
+      today.setDate(today.getDate() - 1);
+    } else if (day === 0) {
+      // Sunday → move back 2 more days (to Friday)
+      today.setDate(today.getDate() - 2);
+    }
+
     return today;
   });
   type VegReport = {
