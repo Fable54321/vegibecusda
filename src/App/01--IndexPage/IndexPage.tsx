@@ -4,7 +4,7 @@ import { useOutletContext } from "react-router-dom";
 
 function IndexPage() {
 
-    const [veggiesToShow, setVeggiesToShow] = useState<string[]>(["Cabbage", "Squash", "Peppers, Bell Type", "Broccoli"]);
+    const [veggiesToShow, setVeggiesToShow] = useState<string[]>(["Cabbage", "Squash", "Peppers, Bell Type", "Broccoli", "Cauliflower", "Brussel"]);
 
 
     type VegResult = {
@@ -37,6 +37,10 @@ function IndexPage() {
                 return "Poivron";
             case "Broccoli":
                 return "Brocoli";
+            case "Cauliflower":
+                return "Chou-fleur";
+            case "Brussels Sprouts":
+                return "Choux de Bruxelles";
             default:
                 return commodity;
         }
@@ -71,41 +75,86 @@ function IndexPage() {
         }
     }
 
+    const VeggieCheckbox = ({
+        id,
+        label,
+        value,
+    }: {
+        id: string;
+        label: string;
+        value: string;
+    }) => {
+        const isChecked = veggiesToShow.includes(value);
+        const LONG_PRESS_DELAY = 500;
+        let pressTimer: ReturnType<typeof setTimeout> | null = null;
+
+        const handleToggle = (checked: boolean) => {
+            setVeggiesToShow(
+                checked
+                    ? [...veggiesToShow, value]
+                    : veggiesToShow.filter((kw) => kw !== value)
+            );
+        };
+
+        const handleLongPress = () => {
+            setVeggiesToShow([value]); // only this one
+        };
+
+        const handleMouseDown = () => {
+            pressTimer = setTimeout(handleLongPress, LONG_PRESS_DELAY);
+        };
+
+        const handleMouseUp = (e: React.MouseEvent<HTMLInputElement> | React.TouchEvent<HTMLInputElement>) => {
+            if (pressTimer) {
+                clearTimeout(pressTimer);
+                // if released early -> normal toggle
+                if ("target" in e && e.target instanceof HTMLInputElement) {
+                    handleToggle(e.target.checked);
+                }
+            }
+        };
+
+        return (
+            <div className="relative flex justify-between">
+                <label htmlFor={id}>{label}</label>
+                <input
+                    id={id}
+                    type="checkbox"
+                    checked={isChecked}
+                    className="accent-green-700 min-w-[1rem]"
+                    onMouseDown={handleMouseDown}
+                    onMouseUp={handleMouseUp}
+                    onMouseLeave={() => pressTimer && clearTimeout(pressTimer)}
+                    onTouchStart={handleMouseDown}
+                    onTouchEnd={handleMouseUp}
+                />
+            </div>
+        );
+    };
+
 
 
     return (
-        <section className="w-[min(100%,_70rem)]  flex flex-col items-center px-[0.75rem] gap-[1rem]">
+        <section className="w-[min(100%,_70rem)]  flex flex-col items-center px-[0.2rem] gap-[1rem]">
 
             {loading ? (
-                <p>Loading...</p>
+                <p>Chargement... </p>
             ) : vegReports.length === 0 ||
                 vegReports.every((report) => report.results.length === 0) ? (
                 <p>Les rapports pour la date sélectionnée ne sont pas disponibles</p>
             ) : (
                 <>
-                    <div className="grid grid-cols-2 gap-[0.5rem] w-[min(76%,_40rem)] lg:text-[1.2rem] lg:gap-x-[10rem] ">
-                        <div className="relative flex justify-between">
-                            <label htmlFor="cabbage">Choux</label>
-                            <input onChange={(e) => setVeggiesToShow(e.target.checked ? [...veggiesToShow, "Cabbage"] : veggiesToShow.filter((kw) => kw !== "Cabbage"))} checked={veggiesToShow.includes("Cabbage")} className="accent-green-700 w-[1rem]" id="cabbage" type="checkbox" />
-
-                        </div>
-                        <div className="relative flex justify-between">
-                            <label htmlFor="squash">Courgettes</label>
-                            <input onChange={(e) => setVeggiesToShow(e.target.checked ? [...veggiesToShow, "Squash"] : veggiesToShow.filter((kw) => kw !== "Squash"))} checked={veggiesToShow.includes("Squash")} className="accent-green-700 w-[1rem]" id="squash" type="checkbox" />
-
-                        </div>
-                        <div className="relative flex justify-between">
-                            <label htmlFor="peppers">Poivrons</label>
-                            <input onChange={(e) => setVeggiesToShow(e.target.checked ? [...veggiesToShow, "Peppers, Bell Type"] : veggiesToShow.filter((kw) => kw !== "Peppers, Bell Type"))} checked={veggiesToShow.includes("Peppers, Bell Type")} className="accent-green-700 w-[1rem]" id="peppers" type="checkbox" />
-
-                        </div>
-                        <div className="relative flex justify-between">
-                            <label htmlFor="broccoli">Brocolis</label>
-                            <input onChange={(e) => setVeggiesToShow(e.target.checked ? [...veggiesToShow, "Broccoli"] : veggiesToShow.filter((kw) => kw !== "Broccoli"))} checked={veggiesToShow.includes("Broccoli")} className="accent-green-700 w-[1rem]" id="broccoli" type="checkbox" />
-
-                        </div>
-
+                    <div className="grid grid-cols-2 gap-[0.5rem] w-[min(85%,_40rem)] lg:text-[1.2rem] lg:gap-x-[10rem] ">
+                        <VeggieCheckbox id="cabbage" label="Choux" value="Cabbage" />
+                        <VeggieCheckbox id="squash" label="Courgettes" value="Squash" />
+                        <VeggieCheckbox id="peppers" label="Poivrons" value="Peppers, Bell Type" />
+                        <VeggieCheckbox id="broccoli" label="Brocolis" value="Broccoli" />
+                        <VeggieCheckbox id="brussels" label="Choux de Bruxelles" value="Brussel" />
+                        <VeggieCheckbox id="cauliflower" label="Chou-fleur" value="Cauliflower" />
                     </div>
+                    {/* show unshow button */}
+                    <button onClick={() => setVeggiesToShow(veggiesToShow.length === 6 ? [] : ["Cabbage", "Squash", "Peppers, Bell Type", "Broccoli", "Cauliflower", "Brussel"])} className="active:bg-green-700 active:scale-95 active:translate-y-1 shadow-lg active:text-white border-green-700 border-3 outline-2 outline-green-400  p-[0.5rem] rounded-[0.5rem] cursor-pointer">{veggiesToShow.length === 6 ? "Tout déselectionner" : "Tout sélectionner"}</button>
+                    {/* ******** */}
                     <ul className="flex flex-col lg:grid lg:grid-cols-2 gap-[0.25rem] w-[min(100%,_40rem)] lg:w-full">
                         {vegReports.flatMap((report, idx) =>
                             report.results
@@ -115,6 +164,8 @@ function IndexPage() {
                                             result.commodity.includes(kw)
                                         ) &&
                                         !(result.low_price === null && result.high_price === null) // 👈 skip if both are null
+                                        &&
+                                        (result.commodity !== "Chinese Cabbage")
                                 )
                                 .map((result, rIdx) => (
                                     <li
