@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { useOutletContext } from "react-router-dom";
+import loadingImg from '../../assets/loading.png';
+import "./IndexPage.css";
 
 
 function IndexPage() {
@@ -139,7 +141,14 @@ function IndexPage() {
         <section className="w-[min(100%,_70rem)]  flex flex-col items-center px-[0.2rem] gap-[1rem]">
 
             {loading ? (
-                <p>Chargement... </p>
+                <>
+                    <div className="flex gap-[0.5rem]" >
+                        <p>Chargement... </p>
+
+                        <img className="loading w-6" src={loadingImg} alt="" />
+                    </div>
+                    <p className="mt-[-0.5rem]">peut parfois prendre 1 à 2 minutes</p>
+                </>
             ) : vegReports.length === 0 ||
                 vegReports.every((report) => report.results.length === 0) ? (
                 <p>Les rapports pour la date sélectionnée ne sont pas disponibles</p>

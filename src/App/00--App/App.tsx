@@ -76,14 +76,32 @@ function App() {
     const fetchReports = async () => {
       if (!date) return;
 
+      const formatted = formatDate(date);
+
+      // 🔹 Check localStorage first
+      const cached = localStorage.getItem(`vegReports-${formatted}`);
+      if (cached) {
+        const { data, ts } = JSON.parse(cached);
+        // only use if cache is recent enough (e.g. < 24h old)
+        if (Date.now() - ts < 1000 * 60 * 60 * 24) {
+          setVegReports(data);
+          return; // ✅ don’t hit API
+        }
+      }
+
       setLoading(true);
       try {
-        const formatted = formatDate(date);
         const res = await fetch(
           `https://single-instance.tb-technologies.ca/vegibecusda?date=${formatted}`
         );
         const data = await res.json();
         setVegReports(data.reports || []);
+
+        // 🔹 Save to cache
+        localStorage.setItem(
+          `vegReports-${formatted}`,
+          JSON.stringify({ data: data.reports || [], ts: Date.now() })
+        );
       } catch (err) {
         console.error("Failed to fetch veg reports:", err);
       } finally {
@@ -93,7 +111,6 @@ function App() {
 
     fetchReports();
   }, [date]);
-
 
   useEffect(() => {
     console.log(vegReports);
