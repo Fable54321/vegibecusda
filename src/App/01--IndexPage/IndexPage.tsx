@@ -90,6 +90,7 @@ function IndexPage() {
         const isChecked = veggiesToShow.includes(value);
         const LONG_PRESS_DELAY = 500;
         let pressTimer: ReturnType<typeof setTimeout> | null = null;
+        let longPressed = false;
 
         const handleToggle = (checked: boolean) => {
             setVeggiesToShow(
@@ -101,19 +102,17 @@ function IndexPage() {
 
         const handleLongPress = () => {
             setVeggiesToShow([value]); // only this one
+            longPressed = true;
         };
 
         const handleMouseDown = () => {
+            longPressed = false;
             pressTimer = setTimeout(handleLongPress, LONG_PRESS_DELAY);
         };
 
-        const handleMouseUp = (e: React.MouseEvent<HTMLInputElement> | React.TouchEvent<HTMLInputElement>) => {
+        const handleMouseUp = () => {
             if (pressTimer) {
                 clearTimeout(pressTimer);
-                // if released early -> normal toggle
-                if ("target" in e && e.target instanceof HTMLInputElement) {
-                    handleToggle(e.target.checked);
-                }
             }
         };
 
@@ -124,7 +123,13 @@ function IndexPage() {
                     id={id}
                     type="checkbox"
                     checked={isChecked}
-                    className="accent-green-700 min-w-[1rem]"
+                    className="accent-green-700 min-w-[1rem] cursor-pointer"
+                    onChange={(e) => {
+                        // Normal toggle only if it wasn’t a long press
+                        if (!longPressed) {
+                            handleToggle(e.target.checked);
+                        }
+                    }}
                     onMouseDown={handleMouseDown}
                     onMouseUp={handleMouseUp}
                     onMouseLeave={() => pressTimer && clearTimeout(pressTimer)}
@@ -134,7 +139,6 @@ function IndexPage() {
             </div>
         );
     };
-
 
 
     return (
