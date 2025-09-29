@@ -114,6 +114,7 @@ function App() {
 
   useEffect(() => {
     console.log(vegReports);
+    console.log(vegReports.flatMap((r) => r.results).filter((r) => r.commodity.includes("Romaine")));
   }, [vegReports]);
 
 

@@ -6,7 +6,16 @@ import "./IndexPage.css";
 
 function IndexPage() {
 
-    const [veggiesToShow, setVeggiesToShow] = useState<string[]>(["Cabbage", "Squash", "Peppers, Bell Type", "Broccoli", "Cauliflower", "Brussel"]);
+    const [veggiesToShow, setVeggiesToShow] = useState<string[]>(["Cabbage",
+        "Squash",
+        "Peppers, Bell Type",
+        "Broccoli",
+        "Cauliflower",
+        "Brussel",
+        "Lettuce, Red Leaf",
+        "Lettuce, Green Leaf",
+        "Lettuce, Romaine",
+        "Lettuce, Iceberg"]);
 
 
     type VegResult = {
@@ -20,6 +29,7 @@ function IndexPage() {
         demand_tone_comments: string;
         supply_tone_comments: string;
         organic: string;
+        var: string;
     };
 
     type outletContextType = {
@@ -44,6 +54,14 @@ function IndexPage() {
                 return "Chou-fleur";
             case "Brussels Sprouts":
                 return "Choux de Bruxelles";
+            case "Lettuce, Red Leaf":
+                return "Laitue frisée rouge";
+            case "Lettuce, Green Leaf":
+                return "Laitue frisée verte";
+            case "Lettuce, Romaine":
+                return "Laitue romaine";
+            case "Lettuce, Iceberg":
+                return "Laitue iceberg";
             default:
                 return commodity;
         }
@@ -73,6 +91,14 @@ function IndexPage() {
                 return "bonne pour prix un peu plus faible";
             case "in few hands.":
                 return "très limitée";
+            case "HEARTS":
+                return "Cœurs";
+            case "CROWN CUT":
+                return "Couronnes";
+            case "ROUND GREEN TYPE":
+                return "Rond Vert";
+            case "RED TYPE":
+                return "Rouge";
             default:
                 return comments;
         }
@@ -159,7 +185,7 @@ function IndexPage() {
             ) : (
                 <>
                     {/* show unshow button */}
-                    <button onClick={() => setVeggiesToShow(veggiesToShow.length === 6 ? [] : ["Cabbage", "Squash", "Peppers, Bell Type", "Broccoli", "Cauliflower", "Brussel"])} className=" active:scale-95 active:translate-y-1 shadow-lg  border-green-700 border-3 outline-2 outline-green-400 text-[0.8rem]  p-[0.5rem] rounded-[0.5rem] cursor-pointer">{veggiesToShow.length === 6 ? "Tout déselectionner" : "Tout sélectionner"}</button>
+                    <button onClick={() => setVeggiesToShow(veggiesToShow.length === 6 ? [] : ["Cabbage", "Squash", "Peppers, Bell Type", "Broccoli", "Cauliflower", "Brussel", "Lettuce, Red Leaf", "Lettuce, Green Leaf", "Lettuce, Romaine", "Lettuce, Iceberg"])} className=" active:scale-95 active:translate-y-1 shadow-lg  border-green-700 border-3 outline-2 outline-green-400 text-[0.8rem]  p-[0.5rem] rounded-[0.5rem] cursor-pointer">{veggiesToShow.length === 6 ? "Tout déselectionner" : "Tout sélectionner"}</button>
                     {/* ******** */}
                     <div className="grid grid-cols-2 gap-[0.5rem] w-[min(85%,_40rem)] lg:text-[1.2rem] lg:gap-x-[10rem] ">
                         <VeggieCheckbox id="cabbage" label="Choux" value="Cabbage" />
@@ -168,6 +194,10 @@ function IndexPage() {
                         <VeggieCheckbox id="broccoli" label="Brocolis" value="Broccoli" />
                         <VeggieCheckbox id="brussels" label="Choux de Bruxelles" value="Brussel" />
                         <VeggieCheckbox id="cauliflower" label="Chou-fleur" value="Cauliflower" />
+                        <VeggieCheckbox id="lettuce, red" label="Laitue frisée rouge" value="Lettuce, Red Leaf" />
+                        <VeggieCheckbox id="lettuce, green" label="Laitue frisée verte" value="Lettuce, Green Leaf" />
+                        <VeggieCheckbox id="lettuce, romaine" label="Laitue romaine" value="Lettuce, Romaine" />
+                        <VeggieCheckbox id="lettuce, iceberg" label="Laitue iceberg" value="Lettuce, Iceberg" />
                     </div>
                     <p className="w-[80%] text-[0.8rem] text-center mt-[-0.5rem]">Cliquer ou Appuyer longuement sur une case pour ne sélectionner que celle-ci</p>
 
@@ -196,6 +226,7 @@ function IndexPage() {
                                                 <div className=" items-center gap-[2rem]">
                                                     <p className="text-[1.3rem] lg:text-[1.5rem] font-bold">
                                                         {commodityDisplayName(result.commodity)}
+                                                        <span className="text-[0.9rem] font-regular">{result.var !== "N/A" ? ` (${commentsTranslation(result.var)})` : ""}</span>
                                                     </p>
                                                     <p>({result.item_size}, {result.pkg})</p>
                                                 </div>
@@ -225,6 +256,7 @@ function IndexPage() {
                                         <p className="text-[0.8rem] absolute bottom-0 right-1">
                                             {result.report_date}
                                         </p>
+
                                     </li>
                                 ))
                         )}

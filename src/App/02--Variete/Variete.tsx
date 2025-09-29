@@ -6,15 +6,8 @@ function Variete() {
         commodity: string;
         lo_prices: number[];
         hi_prices: number[];
+        pkg: string;
     };
-
-    const [cabbageInfo, setCabbageInfo] = useState<vegInfo>({ commodity: "Chou", lo_prices: [], hi_prices: [] });
-    const [squashZuchInfo, setSquashZuchInfo] = useState<vegInfo>({ commodity: "Zucchini", lo_prices: [], hi_prices: [] });
-    const [squashYlwInfo, setSquashYlwInfo] = useState<vegInfo>({ commodity: "Courgette Jaune", lo_prices: [], hi_prices: [] });
-    const [pepperInfo, setPepperInfo] = useState<vegInfo>({ commodity: "Poivron", lo_prices: [], hi_prices: [] });
-    const [broccoliInfo, setBroccoliInfo] = useState<vegInfo>({ commodity: "Brocoli", lo_prices: [], hi_prices: [] });
-    const [cauliflowerInfo, setCauliflowerInfo] = useState<vegInfo>({ commodity: "Chou-fleur", lo_prices: [], hi_prices: [] });
-    const [brusselsInfo, setBrusselsInfo] = useState<vegInfo>({ commodity: "Choux de Bruxelles", lo_prices: [], hi_prices: [] });
 
     type VegResult = {
         market_location_city: string;
@@ -24,6 +17,7 @@ function Variete() {
         low_price: string;
         high_price: string;
         organic: string;
+        var?: string; // variety field
     };
 
     type outletContextType = {
@@ -33,22 +27,44 @@ function Variete() {
 
     const { vegReports, loading } = useOutletContext<outletContextType>();
 
-    // ⬇️ New useEffect that filters organics & avoids accumulation
-    useEffect(() => {
-        const commodityMap: Record<string, string> = {
-            "Cabbage": "Chou",
-            "Squash, Zucchini": "Zucchini",
-            "Squash, Yellow Straightneck": "Courgette Jaune",
-            "Peppers, Bell Type": "Poivron",
-            "Broccoli": "Brocoli",
-            "Cauliflower": "Chou-fleur",
-            "Brussels Sprouts": "Choux de Bruxelles",
-        };
+    const [aggregatedInfo, setAggregatedInfo] = useState<vegInfo[]>([]);
 
-        const freshState: Record<string, { lo_prices: number[]; hi_prices: number[] }> = {};
-        Object.values(commodityMap).forEach((display) => {
-            freshState[display] = { lo_prices: [], hi_prices: [] };
-        });
+    // commodity translation
+    const commodityMap: Record<string, string> = {
+        "Cabbage": "Chou",
+        "Squash, Zucchini": "Zucchini",
+        "Squash, Yellow Straightneck": "Courgette Jaune",
+        "Peppers, Bell Type": "Poivron",
+        "Broccoli": "Brocoli",
+        "Cauliflower": "Chou-fleur",
+        "Brussels Sprouts": "Choux de Bruxelles",
+        "Lettuce, Red Leaf": "Laitue frisée rouge",
+        "Lettuce, Green Leaf": "Laitue frisée verte",
+        "Lettuce, Romaine": "Laitue romaine",
+        "Lettuce, Iceberg": "Laitue iceberg",
+    };
+
+    // variety translation
+    const commentsTranslation = (comments: string) => {
+        switch (comments) {
+            case "HEARTS":
+                return "Cœurs";
+            case "CROWN CUT":
+                return "Couronnes";
+            case "ROUND GREEN TYPE":
+                return "Rond Vert";
+            case "RED TYPE":
+                return "Rouge";
+            default:
+                return comments;
+        }
+    };
+
+    useEffect(() => {
+        const freshState: Record<
+            string,
+            { commodity: string; pkg: string; lo_prices: number[]; hi_prices: number[] }
+        > = {};
 
         vegReports
             .flatMap((report) => report.results)
@@ -56,61 +72,66 @@ function Variete() {
             .forEach((result) => {
                 const displayName = commodityMap[result.commodity];
                 if (displayName) {
-                    freshState[displayName].lo_prices.push(parseInt(result.low_price));
-                    freshState[displayName].hi_prices.push(parseInt(result.high_price));
+                    const hasVar = result.var && result.var !== "N/A";
+                    const varPart = hasVar ? ` (${commentsTranslation(result.var!)})` : "";
+                    const pkgPart = result.pkg ? ` - ${result.pkg}` : "";
+
+                    // group by commodity + variety + pkg
+                    const key = `${displayName}${varPart}${pkgPart}`;
+
+                    if (!freshState[key]) {
+                        freshState[key] = {
+                            commodity: `${displayName}${varPart}`, // keep pkg separate
+                            pkg: result.pkg,
+                            lo_prices: [],
+                            hi_prices: [],
+                        };
+                    }
+
+                    if (result.low_price) {
+                        freshState[key].lo_prices.push(parseFloat(result.low_price));
+                    }
+                    if (result.high_price) {
+                        freshState[key].hi_prices.push(parseFloat(result.high_price));
+                    }
                 }
             });
 
-        setCabbageInfo({ commodity: "Chou", ...freshState["Chou"] });
-        setSquashZuchInfo({ commodity: "Zucchini", ...freshState["Zucchini"] });
-        setSquashYlwInfo({ commodity: "Courgette Jaune", ...freshState["Courgette Jaune"] });
-        setPepperInfo({ commodity: "Poivron", ...freshState["Poivron"] });
-        setBroccoliInfo({ commodity: "Brocoli", ...freshState["Brocoli"] });
-        setCauliflowerInfo({ commodity: "Chou-fleur", ...freshState["Chou-fleur"] });
-        setBrusselsInfo({ commodity: "Choux de Bruxelles", ...freshState["Choux de Bruxelles"] });
+        setAggregatedInfo(
+            Object.values(freshState).sort((a, b) =>
+                a.commodity.localeCompare(b.commodity)
+            )
+        );
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [vegReports]);
-
-    useEffect(() => {
-        console.log(cabbageInfo);
-        console.log(squashZuchInfo);
-        console.log(squashYlwInfo);
-        console.log(pepperInfo);
-        console.log(broccoliInfo);
-    }, [cabbageInfo, squashZuchInfo, squashYlwInfo, pepperInfo, broccoliInfo]);
-
-
-
 
     return (
         <section className="w-[min(100%,_40rem)] flex flex-col items-center px-[0.2rem] gap-[1rem]">
-
             {loading ? (
-                <p>
-                    Chargement...
-                </p>
+                <p>Chargement...</p>
             ) : vegReports.length === 0 ||
                 vegReports.every((report) => report.results.length === 0) ? (
                 <p>Les rapports pour la date sélectionnée ne sont pas disponibles</p>
             ) : (
                 <>
-                    <p className=" relative w-[80%] text-center text-[1.2rem]"> *Les Prix montrés ci-dessous excluent les prix bio* </p>
+                    <p className=" relative w-[80%] text-center text-[1.2rem]">
+                        *Les Prix montrés ci-dessous excluent les prix bio*
+                    </p>
                     <ul className="flex flex-col gap-[0.25rem] w-[min(100%,_40rem)]">
-                        {[
-                            cabbageInfo,
-                            squashZuchInfo,
-                            squashYlwInfo,
-                            pepperInfo,
-                            broccoliInfo,
-                            cauliflowerInfo,
-                            brusselsInfo,
-                        ].map((veg) => {
+                        {aggregatedInfo.map((veg) => {
                             const loAvg =
-                                veg.lo_prices && veg.lo_prices.length > 0
-                                    ? (veg.lo_prices.reduce((a, b) => a + b, 0) / veg.lo_prices.length).toFixed(2)
+                                veg.lo_prices.length > 0
+                                    ? (
+                                        veg.lo_prices.reduce((a, b) => a + b, 0) /
+                                        veg.lo_prices.length
+                                    ).toFixed(2)
                                     : "N/A";
                             const hiAvg =
-                                veg.hi_prices && veg.hi_prices.length > 0
-                                    ? (veg.hi_prices.reduce((a, b) => a + b, 0) / veg.hi_prices.length).toFixed(2)
+                                veg.hi_prices.length > 0
+                                    ? (
+                                        veg.hi_prices.reduce((a, b) => a + b, 0) /
+                                        veg.hi_prices.length
+                                    ).toFixed(2)
                                     : "N/A";
 
                             return (
@@ -118,7 +139,14 @@ function Variete() {
                                     key={veg.commodity}
                                     className="flex flex-col gap-[0.75rem] bg-white p-[0.75rem] rounded-[0.75rem] border-4 border-green-400 border-solid"
                                 >
-                                    <h3 className="text-[1.5rem] font-bold text-center">{veg.commodity}</h3>
+                                    <h3 className="text-[1.5rem] font-bold text-center">
+                                        {veg.commodity}
+                                    </h3>
+                                    {veg.pkg && (
+                                        <p className="text-center mt-[-0.75rem]">
+                                            {veg.pkg}
+                                        </p>
+                                    )}
                                     <div className="flex items-center justify-between">
                                         <p className="text-center">
                                             Prix bas moyen: <br />
@@ -131,10 +159,9 @@ function Variete() {
                                     </div>
                                 </li>
                             );
-                        })}
+                        })
+                        }
                     </ul>
-
-
                 </>
             )}
         </section>
